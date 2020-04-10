@@ -4,17 +4,9 @@ import argparse
 import os
 import logging
 
-version = '1.0.1'
-
-ULTRA_SECRET_KEY = os.environ.get('SECRET_KEY')
-
-logging.basicConfig(format='%(asctime)s - %(message)s',level='INFO')
-logger = logging.getLogger()
-
-logger.info('Starting program...')
-
 
 def createparser():
+    version = '1.0.1'
     parser = argparse.ArgumentParser(
         prog='GetMeTheseImages!',
         description='''This program was made for downloading pictures.
@@ -28,14 +20,14 @@ def createparser():
     )
     parser.add_argument('-c', '--category', help='One of required categories', metavar='')
     parser.add_argument('-p', '--per_page', help='Determine the number of results per page.', metavar='')
-    parser.add_argument('--version',action='version', help='show version', version='%(prog)s {}'.format(version))
+    parser.add_argument('--version', action='version', help='show version', version='%(prog)s {}'.format(version))
 
     return parser
 
 
 def write_json(data):
     with open('response_json', 'w') as file:
-        json.dump(data, file, indent=2, )
+        json.dump(data, file, indent=2)
 
 
 def download_photo(url):
@@ -49,6 +41,10 @@ def download_photo(url):
 
 
 def main():
+    logging.basicConfig(format='%(asctime)s - %(message)s', level='INFO')
+    logger = logging.getLogger()
+
+    logger.info('Starting program...')
 
     saved_pictures = os.getcwd() + '/pictures'
     if not os.path.isdir(saved_pictures):
@@ -64,7 +60,8 @@ def main():
 
     print(namespace)
 
-    response = requests.get(F"https://pixabay.com/api/?{ULTRA_SECRET_KEY}&category={namespace.category}&per_page={namespace.per_page}")
+    response = requests.get(
+        F"https://pixabay.com/api/?key={ULTRA_SECRET_KEY}&category={namespace.category}&per_page={namespace.per_page}")
 
     write_json(response.json())
 
@@ -73,14 +70,14 @@ def main():
     count = 1
 
     for photo in photos:
-
         url = photo['largeImageURL']
         logger.info(f'Downloading {count} photo from {namespace.per_page}')
         count += 1
         download_photo(url)
 
+    logger.info('Done!')
+
 
 if __name__ == '__main__':
+    ULTRA_SECRET_KEY = os.environ.get('PIXABAY_API_KEY')
     main()
-
-logger.info('Done!')
