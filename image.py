@@ -49,7 +49,6 @@ def main():
     saved_pictures = os.getcwd() + '/pictures'
     if not os.path.isdir(saved_pictures):
         os.mkdir(saved_pictures)
-
     else:
         logger.warning('This directory is already exists. Complement...')
 
