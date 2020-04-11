@@ -1,4 +1,6 @@
 __pycache__/
 .idea
+venv
 pictures
+tests/53e0d54a4f51af14f6da8c7dda79367b1d39dde454596c4870277dd2944cc151b1_1280.jpg
 .DS_Store

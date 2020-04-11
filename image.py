@@ -12,10 +12,10 @@ def createparser():
         description='''This program was made for downloading pictures.
                         The main idea of this script is to find images on what category you want.
                         You can choose a category from the list above:
-                        {backgrounds, fashion, nature, science, education, feelings, health, people, 
-                        religion, places, animals, industry, computer, food, sports, transportation, travel, 
+                        {backgrounds, fashion, nature, science, education, feelings, health, people,
+                        religion, places, animals, industry, computer, food, sports, transportation, travel,
                         buildings, business, music}
-                        Also you need to choose a number of photos. 
+                        Also you need to choose a number of photos.
                         Available values - from 3 to 200'''
     )
     parser.add_argument('-c', '--category',type=str, help='One of required categories', metavar='')
@@ -30,12 +30,12 @@ def write_json(data):
         json.dump(data, file, indent=2)
 
 
-def download_photo(url):
+def download_photo(url, file_path):
     response = requests.get(url, stream=True)
 
     filename = url.split('/')[-1]
 
-    with open(filename, 'bw') as file:
+    with open(os.path.join(file_path, filename), 'bw') as file:
         for chunk in response.iter_content(8192):
             file.write(chunk)
 
@@ -63,7 +63,10 @@ def main():
 
     if 3 <= namespace.per_page <= 200:
         response = requests.get(
-            F"https://pixabay.com/api/?key={ULTRA_SECRET_KEY}&category={namespace.category}&per_page={namespace.per_page}")
+            f"https://pixabay.com/api/"
+            f"?key={ULTRA_SECRET_KEY}"
+            f"&category={namespace.category}"
+            f"&per_page={namespace.per_page}")
 
         write_json(response.json())
 
@@ -75,7 +78,7 @@ def main():
             url = photo['largeImageURL']
             logger.info(f'Downloading {count} photo from {namespace.per_page}')
             count += 1
-            download_photo(url)
+            download_photo(url, saved_pictures)
 
     else:
         parser.print_help()
