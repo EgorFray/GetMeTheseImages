@@ -6,7 +6,7 @@ import logging
 
 
 def createparser():
-    version = '1.0.1'
+    version = '1.0.2'
     parser = argparse.ArgumentParser(
         prog='GetMeTheseImages!',
         description='''This program was made for downloading pictures.
