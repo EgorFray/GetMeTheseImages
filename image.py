@@ -1,8 +1,13 @@
 import requests
-import json
 import argparse
 import os
 import logging
+
+
+def create_logger():
+    logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%H:%M:%S', level='INFO')
+    logger = logging.getLogger()
+    return logger
 
 
 def createparser():
@@ -25,11 +30,6 @@ def createparser():
     return parser
 
 
-def write_json(data):
-    with open('response_json', 'w') as file:
-        json.dump(data, file, indent=2)
-
-
 def download_photo(url, file_path):
     response = requests.get(url, stream=True)
 
@@ -40,50 +40,53 @@ def download_photo(url, file_path):
             file.write(chunk)
 
 
-def main():
-    logging.basicConfig(format='%(asctime)s - %(message)s',datefmt='%H:%M:%S', level='INFO')
-    logger = logging.getLogger()
-
-    logger.info('Starting program...')
-
+def get_folder():
     saved_pictures = os.getcwd() + '/pictures'
 
     if not os.path.isdir(saved_pictures):
         os.mkdir(saved_pictures)
-    else:
-        logger.warning('This directory is already exists. Complement...')
 
-    os.chdir(saved_pictures)
+    return saved_pictures
 
+
+def start_parcing():
     parser = createparser()
 
     namespace = parser.parse_args()
 
-    print(namespace)
+    return namespace
 
-    if 3 <= namespace.per_page <= 200:
+
+def get_response():
+
+    if 3 <= start_parcing().per_page <= 200:
         response = requests.get(
             f"https://pixabay.com/api/"
             f"?key={ULTRA_SECRET_KEY}"
-            f"&category={namespace.category}"
-            f"&per_page={namespace.per_page}")
-
-        write_json(response.json())
-
-        photos = json.load(open('response_json'))['hits']
-
-        count = 1
-
-        for photo in photos:
-            url = photo['largeImageURL']
-            logger.info(f'Downloading {count} photo from {namespace.per_page}')
-            count += 1
-            download_photo(url, saved_pictures)
+            f"&category={start_parcing().category}"
+            f"&per_page={start_parcing().per_page}")
 
     else:
-        parser.print_help()
+        print('Use python image.py -h for help')
 
-    logger.info('Done!')
+    return response
+
+
+def main():
+
+    create_logger().info('Starting program...')
+
+    photos = get_response().json()['hits']
+
+    count = 1
+
+    for photo in photos:
+        url = photo['largeImageURL']
+        create_logger().info(f'Downloading {count} photo from {start_parcing().per_page}')
+        count += 1
+        download_photo(url, get_folder())
+
+    create_logger().info('Done!')
 
 
 if __name__ == '__main__':
