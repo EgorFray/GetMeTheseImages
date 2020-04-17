@@ -26,69 +26,63 @@ def createparser():
     parser.add_argument('-c', '--category',type=str, help='One of required categories', metavar='')
     parser.add_argument('-p', '--per_page',type=int, help='Determine the number of results per page.', metavar='')
     parser.add_argument('--version', action='version', help='show version', version='%(prog)s {}'.format(version))
-
     return parser
 
 
-def download_photo(url, file_path):
+def download_photo(url, id, file_path):
     response = requests.get(url, stream=True)
+    filename = str(id) + '.jpg'
+    if not os.path.exists(os.path.join(file_path, filename)):
+        with open(os.path.join(file_path, filename), 'bw') as file:
+            for chunk in response.iter_content(8192):
+                file.write(chunk)
+    else:
+        create_logger().warning('This file is already exists')
 
-    filename = url.split('/')[-1]
 
-    with open(os.path.join(file_path, filename), 'bw') as file:
-        for chunk in response.iter_content(8192):
-            file.write(chunk)
-
-
-def get_folder():
-    saved_pictures = os.getcwd() + '/pictures'
-
+def create_folder():
+    saved_pictures = os.path.join(os.getcwd(), 'pictures')
     if not os.path.isdir(saved_pictures):
         os.mkdir(saved_pictures)
-
     return saved_pictures
 
 
 def start_parcing():
     parser = createparser()
-
-    namespace = parser.parse_args()
-
-    return namespace
+    return parser.parse_args()
 
 
 def get_response():
-
+    parser = start_parcing()
     if 3 <= start_parcing().per_page <= 200:
         response = requests.get(
             f"https://pixabay.com/api/"
             f"?key={ULTRA_SECRET_KEY}"
-            f"&category={start_parcing().category}"
-            f"&per_page={start_parcing().per_page}")
-
+            f"&category={parser.category}"
+            f"&per_page={parser.per_page}")
+        return response
     else:
-        print('Use python image.py -h for help')
-
-    return response
+        create_logger().warning('Use python image.py -h for help')
 
 
 def main():
-
-    create_logger().info('Starting program...')
-
+    answear = create_logger()
+    check_folder = create_folder()
+    answear.info('Starting program...')
     photos = get_response().json()['hits']
-
-    count = 1
-
-    for photo in photos:
+    for index,photo in enumerate(photos):
         url = photo['largeImageURL']
-        create_logger().info(f'Downloading {count} photo from {start_parcing().per_page}')
-        count += 1
-        download_photo(url, get_folder())
-
-    create_logger().info('Done!')
+        unick_id = photo['id']
+        answear.info(f'Downloading {index + 1} photo from {start_parcing().per_page}')
+        index += 1
+        test = os.getcwd()
+        download_photo(url, unick_id, check_folder)
+    answear.info('Done!')
 
 
 if __name__ == '__main__':
     ULTRA_SECRET_KEY = os.environ.get('PIXABAY_API_KEY')
     main()
+
+
+
